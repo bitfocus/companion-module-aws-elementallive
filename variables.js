@@ -1,7 +1,36 @@
-module.exports = async function (self) {
-	self.setVariableDefinitions([
-		{ variableId: 'variable1', name: 'My first variable' },
-		{ variableId: 'variable2', name: 'My second variable' },
-		{ variableId: 'variable3', name: 'Another variable' },
-	])
+export function getVariables() {
+	const variables = []
+
+	//System Variables
+	variables.push({
+		name: `System CPU`,
+		variableId: `system_cpu`,
+	})
+	variables.push({
+		name: `System Memory`,
+		variableId: `system_memory`,
+	})
+	variables.push({
+		name: `System GPU`,
+		variableId: `system_gpu`,
+	})
+
+	//Event Specific Variables
+	for (let x in this.live_events) {
+		let event = this.live_events[x]
+
+		variables.push({
+			name: `Event ${event.id} - Name`,
+			variableId: `event_${event.id}_name`,
+		})
+		variables.push({
+			name: `Event ${event.id} - Status`,
+			variableId: `event_${event.id}_status`,
+		})
+		variables.push({
+			name: `Event ${event.id} - Duration`,
+			variableId: `event_${event.id}_duration`,
+		})
+	}
+	return variables
 }
