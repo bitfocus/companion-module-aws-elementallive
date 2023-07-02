@@ -1,33 +1,74 @@
-const { combineRgb } = require('@companion-module/base')
+import { combineRgb } from '@companion-module/base'
 
-module.exports = async function (self) {
-	self.setFeedbackDefinitions({
-		ChannelState: {
-			name: 'Example Feedback',
-			type: 'boolean',
-			label: 'Channel State',
-			defaultStyle: {
-				bgcolor: combineRgb(255, 0, 0),
-				color: combineRgb(0, 0, 0),
-			},
-			options: [
-				{
-					id: 'num',
-					type: 'number',
-					label: 'Test',
-					default: 5,
-					min: 0,
-					max: 10,
-				},
-			],
-			callback: (feedback) => {
-				console.log('Hello world!', feedback.options.num)
-				if (feedback.options.num > 5) {
-					return true
-				} else {
-					return false
-				}
-			},
+export function getFeedbacks() {
+	const feedbacks = {}
+
+	const ColorWhite = combineRgb(255, 255, 255)
+	const ColorBlack = combineRgb(0, 0, 0)
+	const ColorGray = combineRgb(110, 110, 110)
+	const ColorRed = combineRgb(200, 0, 0)
+	const ColorGreen = combineRgb(0, 200, 0)
+	const ColorOrange = combineRgb(255, 102, 0)
+
+	let eventStatusChoices = [
+		{ id: 'running', label: 'Running' },
+		{ id: 'pending', label: 'Pending' },
+		{ id: 'complete', label: 'Complete' },
+		{ id: 'error', label: 'Error' },
+	]
+
+	let systemStatusChoices = [
+		{ id: 'green_status', label: 'Running' },
+		{ id: 'orange_status', label: 'Pending' },
+	]
+
+	feedbacks['eventStatus'] = {
+		type: 'boolean',
+		name: 'Live Event Status',
+		description: "Change style if an event's current status matches the selected status",
+		defaultStyle: {
+			bgcolor: ColorGreen,
 		},
-	})
+		options: [
+			{
+				type: 'number',
+				label: 'Event ID',
+				id: 'id',
+				default: '',
+			},
+			{
+				type: 'dropdown',
+				label: 'Status',
+				id: 'status',
+				default: 'running',
+				choices: eventStatusChoices,
+			},
+		],
+		callback: (feedback) => {
+			return this.live_events?.[`${feedback.options.id}`]?.status === feedback.options.status
+		},
+	}
+
+	feedbacks['systemStatus'] = {
+		type: 'boolean',
+		name: 'System Status',
+		description: 'Change style based on system status',
+		defaultStyle: {
+			bgcolor: ColorGreen,
+		},
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Status',
+				id: 'status',
+				choices: systemStatusChoices,
+				default: 'green_status',
+			},
+		],
+		callback: (feedback) => {
+			return this.system?.status === feedback.options.status
+		},
+	}
+
+	return feedbacks
 }
