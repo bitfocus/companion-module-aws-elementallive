@@ -208,34 +208,33 @@ class ElementalLiveInstance extends InstanceBase {
 				for (let x in eventData) {
 					let event = eventData[x]
 					if (event) {
-						let id = event.href.replace(/\/live_events\//g, '')
+						let id = event.href?.replace(/\/live_events\//g, '')
 						event.id = id
 						this.live_events[`${id}`] = event
-					}
 
-					//Update Variable Values
-					let status = event.status
-					status = status.charAt(0).toUpperCase() + status.slice(1)
+						//Update Variable Values
+						let status = event.status
+						status = status.charAt(0).toUpperCase() + status.slice(1)
 
-					let elapsedTime
-					if (event.elapsed) {
-						let elapsed = dayjs.duration(event.elapsed, 'seconds').format('HH:mm:ss')
-						elapsedTime = elapsed
-					} else {
-						elapsedTime = '00:00:00'
+						let elapsedTime
+						if (event.elapsed) {
+							let elapsed = dayjs.duration(event.elapsed, 'seconds').format('HH:mm:ss')
+							elapsedTime = elapsed
+						} else {
+							elapsedTime = '00:00:00'
+						}
+						//Initialize if events are added
+						if (changed) {
+							this.initVariables()
+							this.initPresets()
+						}
+						this.setVariableValues({
+							[`event_${event.id}_name`]: event.name,
+							[`event_${event.id}_status`]: status,
+							[`event_${event.id}_duration`]: elapsedTime,
+						})
+						this.checkFeedbacks()
 					}
-					//Initialize if events are added
-					if (changed) {
-						console.log('changed')
-						this.initVariables()
-						this.initPresets()
-					}
-					this.setVariableValues({
-						[`event_${event.id}_name`]: event.name,
-						[`event_${event.id}_status`]: status,
-						[`event_${event.id}_duration`]: elapsedTime,
-					})
-					this.checkFeedbacks()
 				}
 			}
 		}
