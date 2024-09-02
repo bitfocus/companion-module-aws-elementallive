@@ -1,6 +1,6 @@
 {
 	"name": "aws-elementallive",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
@@ -12,13 +12,14 @@
 		"url": "git+https://github.com/bitfocus/companion-module-aws-elementallive.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.7.0",
-		"dayjs": "^1.11.10",
+		"@companion-module/base": "~1.10.0",
+		"dayjs": "^1.11.13",
 		"fast-xml-parser": "^4.4.1",
 		"node-fetch": "^3.3.2"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^1.5.0"
+		"@companion-module/tools": "^2.0.0",
+		"prettier": "^3.3.3"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json"
 }
