@@ -15,6 +15,8 @@ export function getFeedbacks() {
 		{ id: 'pending', label: 'Pending' },
 		{ id: 'complete', label: 'Complete' },
 		{ id: 'error', label: 'Error' },
+		{id: 'preprocessing', label: 'Preprocessing'},
+		{id: 'postprocessing', label: 'Postprocessing'},
 	]
 
 	let systemStatusChoices = [
@@ -44,7 +46,7 @@ export function getFeedbacks() {
 				choices: eventStatusChoices,
 			},
 		],
-		callback: (feedback) => {
+		callback: (feedback) => {		
 			return this.live_events?.[`${feedback.options.id}`]?.status === feedback.options.status
 		},
 	}
