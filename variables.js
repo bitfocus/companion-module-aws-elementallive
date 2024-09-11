@@ -1,19 +1,19 @@
 export function getVariables() {
 	const variables = []
 
-	//System Variables
-	variables.push({
-		name: `System CPU`,
-		variableId: `system_cpu`,
-	})
-	variables.push({
-		name: `System Memory`,
-		variableId: `system_memory`,
-	})
-	variables.push({
-		name: `System GPU`,
-		variableId: `system_gpu`,
-	})
+	// //System Variables
+	// variables.push({
+	// 	name: `System CPU`,
+	// 	variableId: `system_cpu`,
+	// })
+	// variables.push({
+	// 	name: `System Memory`,
+	// 	variableId: `system_memory`,
+	// })
+	// variables.push({
+	// 	name: `System GPU`,
+	// 	variableId: `system_gpu`,
+	// })
 
 	//Event Specific Variables
 	for (let x in this.live_events) {
