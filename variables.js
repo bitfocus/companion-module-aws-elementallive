@@ -28,9 +28,13 @@ export function getVariables() {
 			variableId: `event_${event.id}_status`,
 		})
 		variables.push({
-			name: `Event ${event.id} - Duration`,
-			variableId: `event_${event.id}_duration`,
+			name: `Event ${event.id} - Average FPS`,
+			variableId: `event_${event.id}_average_fps`,
 		})
+		// variables.push({
+		// 	name: `Event ${event.id} - Duration`,
+		// 	variableId: `event_${event.id}_duration`,
+		// })
 	}
 	return variables
 }
