@@ -204,9 +204,6 @@ class ElementalLiveInstance extends InstanceBase {
 	initConnection() {
 		this.live_events = {}
 		this.system = {}
-
-		// this.sendGetRequest('system_status.json')
-		// this.sendGetRequest('settings')
 		this.sendGetRequest('live_events')
 
 		this.startPoll()
@@ -230,68 +227,8 @@ class ElementalLiveInstance extends InstanceBase {
 	pollDevice() {
 		this.sendGetRequest('live_events')
 		this.checkFeedbacks()
-		// this.sendGetRequest('system_status')
+
 	}
-
-	// processData(data) {
-	// 	if (data.settings) {
-	// 		if (data.settings.network_config) {
-	// 			let hostname = data.settings.network_config.hostname
-	// 			this.log('info', `Connected to ${hostname ? hostname : 'Elemental Live'} `)
-	// 		}
-	// 	} else if (data.hash) {
-	// 		let info = data.hash
-
-	// 		this.setVariableValues({
-	// 			[`system_cpu`]: `${info.cpu?.pct}%`,
-	// 			[`system_memory`]: `${info.mem?.pct?.['#text']}%`,
-	// 			[`system_gpu`]: `${info.gpu?.gpu?.pct?.['#text']}%`,
-	// 		})
-
-	// 		if (data.hash) {
-	// 			this.system.status = data.hash.status
-	// 		}
-	// 	} else if (data.live_event_list) {
-	// 		let eventData = data.live_event_list?.live_event
-
-	// 		if (eventData) {
-	// 			let oldEventCount = Object.keys(this.live_events).length
-	// 			let newEventCount = Object.keys(eventData).length
-	// 			let changed = oldEventCount != newEventCount || oldEventCount === 0 ? true : false
-	// 			for (let x in eventData) {
-	// 				let event = eventData[x]
-	// 				if (event) {
-	// 					let id = event.href?.replace(/\/live_events\//g, '')
-	// 					event.id = id
-	// 					this.live_events[`${id}`] = event
-
-	// 					//Update Variable Values
-	// 					let status = event.status
-	// 					status = status.charAt(0).toUpperCase() + status.slice(1)
-
-	// 					let elapsedTime
-	// 					if (event.elapsed) {
-	// 						let elapsed = dayjs.duration(event.elapsed, 'seconds').format('HH:mm:ss')
-	// 						elapsedTime = elapsed
-	// 					} else {
-	// 						elapsedTime = '00:00:00'
-	// 					}
-	// 					//Initialize if events are added
-	// 					if (changed) {
-	// 						this.initVariables()
-	// 						this.initPresets()
-	// 					}
-	// 					this.setVariableValues({
-	// 						[`event_${event.id}_name`]: event.name,
-	// 						[`event_${event.id}_status`]: status,
-	// 						[`event_${event.id}_duration`]: elapsedTime,
-	// 					})
-	// 					this.checkFeedbacks()
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 
 	processData(data) {
 		

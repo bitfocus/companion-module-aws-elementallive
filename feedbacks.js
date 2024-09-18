@@ -51,26 +51,5 @@ export function getFeedbacks() {
 		},
 	}
 
-	feedbacks['systemStatus'] = {
-		type: 'boolean',
-		name: 'System Status',
-		description: 'Change style based on system status',
-		defaultStyle: {
-			bgcolor: ColorGreen,
-		},
-		options: [
-			{
-				type: 'dropdown',
-				label: 'Status',
-				id: 'status',
-				choices: systemStatusChoices,
-				default: 'green_status',
-			},
-		],
-		callback: (feedback) => {
-			return this.system?.status === feedback.options.status
-		},
-	}
-
 	return feedbacks
 }
