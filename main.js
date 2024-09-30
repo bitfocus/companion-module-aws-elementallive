@@ -54,6 +54,39 @@ class ElementalLiveInstance extends InstanceBase {
 				width: 8,
 				regex: Regex.IP,
 			},
+			{
+				type: 'static-text',
+				id: 'rejectUnauthorizedInfo',
+				width: 12,
+				value: `
+							<hr />
+							<h5>WARNING</h5>
+							This module rejects server certificates considered invalid for the following reasons:
+							<ul>
+								<li>Certificate is expired</li>
+								<li>Certificate has the wrong host</li>
+								<li>Untrusted root certificate</li>
+								<li>Certificate is self-signed</li>
+							</ul>
+							<p>
+								We DO NOT recommend turning off this option. However, if you NEED to connect to a host
+								with a self-signed certificate you will need to set <strong>Unauthorized Certificates</strong>
+								to <strong>Accept</strong>.
+							</p>
+							<p><strong>USE AT YOUR OWN RISK!<strong></p>
+						`,
+			},
+			{
+				type: 'dropdown',
+				id: 'rejectUnauthorized',
+				label: 'Unauthorized Certificates',
+				width: 6,
+				default: true,
+				choices: [
+					{ id: true, label: 'Reject' },
+					{ id: false, label: 'Accept - Use at your own risk!' },
+				],
+			},
 		]
 	}
 
@@ -78,25 +111,36 @@ class ElementalLiveInstance extends InstanceBase {
 	}
 
 	sendGetRequest(request) {
-		let url = `http://${this.config.host}/api/${request}`
+		if (!this.config.rejectUnauthorized) {
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+		} else {
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1'
+		}
+		let url = `https://${this.config.host}/${request}`
 
-		fetch(url, {
+		return fetch(url, {
 			method: 'GET',
 			headers: {
-				Accept: 'application/xml',
+				Accept: 'application/json',
+				'Content-type': 'application/json',
 			},
 		})
 			.then((res) => {
 				if (res.status == 200) {
 					this.updateStatus(InstanceStatus.Ok)
+
 					return res.text()
 				} else if (res.status == 401) {
 					this.updateStatus('bad_config', 'Authentication Error')
 				}
 			})
 			.then((data) => {
-				let object = parser.parse(data)
-				this.processData(object)
+				let object = JSON.parse(data)
+				if ("live_event" in object) {
+					this.processStatus(object)				
+				} else {
+					this.processData(object)			
+				}
 			})
 			.catch((error) => {
 				let errorText = String(error)
@@ -108,13 +152,20 @@ class ElementalLiveInstance extends InstanceBase {
 	}
 
 	sendPostRequest(request, body) {
+		if (!this.config.rejectUnauthorized) {
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+		} else {
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1'
+		}
 		let output
 		if (body) {
 			let builder = new XMLBuilder({})
 			output = builder.build(body)
 		}
 
-		let url = `http://${this.config.host}/api/${request}`
+
+
+		let url = `https://${this.config.host}/${request}`
 
 		fetch(url, {
 			method: 'POST',
@@ -127,6 +178,7 @@ class ElementalLiveInstance extends InstanceBase {
 			.then((res) => {
 				if (res.status == 200) {
 					this.updateStatus('ok')
+
 					return res.text()
 				} else if (res.status == 401) {
 					this.updateStatus('bad_config', 'Authentication Error')
@@ -134,7 +186,7 @@ class ElementalLiveInstance extends InstanceBase {
 			})
 			.then((data) => {
 				if (data) {
-					let object = parser.parse(data)
+					let object = JSON.parse(data)
 					this.processData(object)
 				} else {
 					this.log('debug', 'No response received')
@@ -152,9 +204,6 @@ class ElementalLiveInstance extends InstanceBase {
 	initConnection() {
 		this.live_events = {}
 		this.system = {}
-
-		this.sendGetRequest('system_status')
-		this.sendGetRequest('settings')
 		this.sendGetRequest('live_events')
 
 		this.startPoll()
@@ -165,7 +214,7 @@ class ElementalLiveInstance extends InstanceBase {
 
 		this.poll = setInterval(() => {
 			this.pollDevice()
-		}, 5000)
+		}, 500)
 	}
 
 	stopPoll() {
@@ -177,67 +226,50 @@ class ElementalLiveInstance extends InstanceBase {
 
 	pollDevice() {
 		this.sendGetRequest('live_events')
-		this.sendGetRequest('system_status')
+		this.checkFeedbacks()
+
 	}
 
 	processData(data) {
-		if (data.settings) {
-			if (data.settings.network_config) {
-				let hostname = data.settings.network_config.hostname
-				this.log('info', `Connected to ${hostname ? hostname : 'Elemental Live'} `)
-			}
-		} else if (data.hash) {
-			let info = data.hash
+		
 
+		data.forEach((eventData) => {
+			let liveEventData = eventData.live_event
+			let oldEventCount = Object.keys(this.live_events).length
+			let newEventCount = Object.keys(data).length
+
+			let changed = oldEventCount != newEventCount || oldEventCount === 0 ? true : false
+
+			
+
+			this.live_events[liveEventData.id] = { ...liveEventData }
+			if (changed) {
+				this.initVariables()
+				this.initPresets()
+			}
 			this.setVariableValues({
-				[`system_cpu`]: `${info.cpu?.pct}%`,
-				[`system_memory`]: `${info.mem?.pct?.['#text']}%`,
-				[`system_gpu`]: `${info.gpu?.gpu?.pct?.['#text']}%`,
+				[`event_${liveEventData.id}_name`]: liveEventData.name,
+
 			})
+			
+			this.sendGetRequest(`live_events/${liveEventData.id}/status`)
+			
+		
+		})
 
-			if (data.hash) {
-				this.system.status = data.hash.status
-			}
-		} else if (data.live_event_list) {
-			let eventData = data.live_event_list?.live_event
+		
+	}
 
-			if (eventData) {
-				let oldEventCount = Object.keys(this.live_events).length
-				let newEventCount = Object.keys(eventData).length
-				let changed = oldEventCount != newEventCount || oldEventCount === 0 ? true : false
-				for (let x in eventData) {
-					let event = eventData[x]
-					if (event) {
-						let id = event.href?.replace(/\/live_events\//g, '')
-						event.id = id
-						this.live_events[`${id}`] = event
+	processStatus(data){
+		this.live_events[data.live_event.id] = { ...this.live_events[data.live_event.id], ...data.live_event }
+		this.setVariableValues({
+			[`event_${data.live_event.id}_status`]: data.live_event.status,
+			[`event_${data.live_event.id}_average_fps`]: data.live_event.average_fps,
+			
+		})
 
-						//Update Variable Values
-						let status = event.status
-						status = status.charAt(0).toUpperCase() + status.slice(1)
+		
 
-						let elapsedTime
-						if (event.elapsed) {
-							let elapsed = dayjs.duration(event.elapsed, 'seconds').format('HH:mm:ss')
-							elapsedTime = elapsed
-						} else {
-							elapsedTime = '00:00:00'
-						}
-						//Initialize if events are added
-						if (changed) {
-							this.initVariables()
-							this.initPresets()
-						}
-						this.setVariableValues({
-							[`event_${event.id}_name`]: event.name,
-							[`event_${event.id}_status`]: status,
-							[`event_${event.id}_duration`]: elapsedTime,
-						})
-						this.checkFeedbacks()
-					}
-				}
-			}
-		}
 	}
 }
 

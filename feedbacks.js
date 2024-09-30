@@ -15,6 +15,8 @@ export function getFeedbacks() {
 		{ id: 'pending', label: 'Pending' },
 		{ id: 'complete', label: 'Complete' },
 		{ id: 'error', label: 'Error' },
+		{id: 'preprocessing', label: 'Preprocessing'},
+		{id: 'postprocessing', label: 'Postprocessing'},
 	]
 
 	let systemStatusChoices = [
@@ -44,29 +46,8 @@ export function getFeedbacks() {
 				choices: eventStatusChoices,
 			},
 		],
-		callback: (feedback) => {
+		callback: (feedback) => {		
 			return this.live_events?.[`${feedback.options.id}`]?.status === feedback.options.status
-		},
-	}
-
-	feedbacks['systemStatus'] = {
-		type: 'boolean',
-		name: 'System Status',
-		description: 'Change style based on system status',
-		defaultStyle: {
-			bgcolor: ColorGreen,
-		},
-		options: [
-			{
-				type: 'dropdown',
-				label: 'Status',
-				id: 'status',
-				choices: systemStatusChoices,
-				default: 'green_status',
-			},
-		],
-		callback: (feedback) => {
-			return this.system?.status === feedback.options.status
 		},
 	}
 
