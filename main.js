@@ -136,10 +136,10 @@ class ElementalLiveInstance extends InstanceBase {
 			})
 			.then((data) => {
 				let object = JSON.parse(data)
-				if ("live_event" in object) {
-					this.processStatus(object)				
+				if ('live_event' in object) {
+					this.processStatus(object)
 				} else {
-					this.processData(object)			
+					this.processData(object)
 				}
 			})
 			.catch((error) => {
@@ -162,8 +162,6 @@ class ElementalLiveInstance extends InstanceBase {
 			let builder = new XMLBuilder({})
 			output = builder.build(body)
 		}
-
-
 
 		let url = `https://${this.config.host}/${request}`
 
@@ -227,20 +225,15 @@ class ElementalLiveInstance extends InstanceBase {
 	pollDevice() {
 		this.sendGetRequest('live_events')
 		this.checkFeedbacks()
-
 	}
 
 	processData(data) {
-		
-
 		data.forEach((eventData) => {
 			let liveEventData = eventData.live_event
 			let oldEventCount = Object.keys(this.live_events).length
 			let newEventCount = Object.keys(data).length
 
 			let changed = oldEventCount != newEventCount || oldEventCount === 0 ? true : false
-
-			
 
 			this.live_events[liveEventData.id] = { ...liveEventData }
 			if (changed) {
@@ -249,27 +242,18 @@ class ElementalLiveInstance extends InstanceBase {
 			}
 			this.setVariableValues({
 				[`event_${liveEventData.id}_name`]: liveEventData.name,
-
 			})
-			
-			this.sendGetRequest(`live_events/${liveEventData.id}/status`)
-			
-		
-		})
 
-		
+			this.sendGetRequest(`live_events/${liveEventData.id}/status`)
+		})
 	}
 
-	processStatus(data){
+	processStatus(data) {
 		this.live_events[data.live_event.id] = { ...this.live_events[data.live_event.id], ...data.live_event }
 		this.setVariableValues({
 			[`event_${data.live_event.id}_status`]: data.live_event.status,
 			[`event_${data.live_event.id}_average_fps`]: data.live_event.average_fps,
-			
 		})
-
-		
-
 	}
 }
 

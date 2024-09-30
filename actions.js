@@ -127,7 +127,7 @@ export function getActions() {
 		},
 		insertSCTE35Message: {
 			name: 'Insert SCTE35',
-			options : [
+			options: [
 				{
 					id: 'id',
 					type: 'textinput',
@@ -136,16 +136,16 @@ export function getActions() {
 				},
 
 				{
-					id : 'duration',
-					type : 'number',
-					label : "Duration",
-					default :''
-				}
+					id: 'duration',
+					type: 'number',
+					label: 'Duration',
+					default: '',
+				},
 			],
 			callback: (action) => {
-				let spliceMessage = { cue_point : {duration : action.options.duration, splice_offset : 0}}
+				let spliceMessage = { cue_point: { duration: action.options.duration, splice_offset: 0 } }
 				this.sendPostRequest(`live_events/${action.options.id}/cue_point`, spliceMessage)
-			}
+			},
 		},
 	}
 	return actions

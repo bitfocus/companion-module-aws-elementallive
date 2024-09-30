@@ -9,8 +9,10 @@
 	"bugs": "https://github.com/bitfocus/companion-module-aws-elementallive/issues",
 	"maintainers": [
 		{
-			"name": "Bryce Seifert",
-			"email": "bryceapps@icloud.com"
+			"name": "Bryce Seifert"
+		},
+		{
+			"name": "Wyatt Vaughan"
 		}
 	],
 	"runtime": {
