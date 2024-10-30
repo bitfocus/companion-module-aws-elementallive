@@ -2,4 +2,13 @@ const { generateEslintConfig } = require('@companion-module/tools/eslint/config.
 
 const baseConfig = await generateEslintConfig({})
 
-export default baseConfig
+const customConfig = [
+	...baseConfig,
+	{
+		languageOptions: {
+			sourceType: 'module',
+		},
+	},
+]
+
+export default customConfig
