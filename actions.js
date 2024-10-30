@@ -6,7 +6,7 @@ export function getActions() {
 			name: 'Start Live Event',
 			options: [actionOptions.id],
 			callback: async (action) => {
-				let start = { start: '' }
+				const start = { start: '' }
 				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/start`, start)
 			},
 		},
@@ -14,7 +14,7 @@ export function getActions() {
 			name: 'Stop Live Event',
 			options: [actionOptions.id],
 			callback: async (action) => {
-				let stop = { stop: '' }
+				const stop = { stop: '' }
 				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/stop`, stop)
 			},
 		},
@@ -22,7 +22,7 @@ export function getActions() {
 			name: 'Cancel Live Event',
 			options: [actionOptions.id],
 			callback: async (action) => {
-				let cancel = { cancel: '' }
+				const cancel = { cancel: '' }
 				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/cancel`, cancel)
 			},
 		},
@@ -30,7 +30,7 @@ export function getActions() {
 			name: 'Archive Live Event',
 			options: [actionOptions.id],
 			callback: async (action) => {
-				let archive = { archive: '' }
+				const archive = { archive: '' }
 				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/archive`, archive)
 			},
 		},
@@ -38,7 +38,7 @@ export function getActions() {
 			name: 'Reset Live Event',
 			options: [actionOptions.id],
 			callback: async (action) => {
-				let reset = { reset: '' }
+				const reset = { reset: '' }
 				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/reset`, reset)
 			},
 		},
@@ -47,10 +47,10 @@ export function getActions() {
 			options: [actionOptions.id, actionOptions.mute],
 			callback: async (action) => {
 				if (action.options.mute) {
-					let mute = { mute_audio: '' }
+					const mute = { mute_audio: '' }
 					this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/mute_audio`, mute)
 				} else {
-					let unmute = { unmute_audio: '' }
+					const unmute = { unmute_audio: '' }
 					this.sendPostRequest(
 						`live_events/${await this.parseVariablesInString(action.options.id)}/unmute_audio`,
 						unmute,
@@ -62,7 +62,7 @@ export function getActions() {
 			name: 'Set Audio Gain',
 			options: [actionOptions.id, actionOptions.gain],
 			callback: async (action) => {
-				let audioGain = { gain: action.options.gain }
+				const audioGain = { gain: action.options.gain }
 				this.sendPostRequest(
 					`live_events/${await this.parseVariablesInString(action.options.id)}/adjust_audio_gain`,
 					audioGain,
@@ -73,7 +73,7 @@ export function getActions() {
 			name: 'Insert SCTE35',
 			options: [actionOptions.id, actionOptions.duration],
 			callback: async (action) => {
-				let spliceMessage = { cue_point: { duration: action.options.duration, splice_offset: 0 } }
+				const spliceMessage = { cue_point: { duration: action.options.duration, splice_offset: 0 } }
 				this.sendPostRequest(
 					`live_events/${await this.parseVariablesInString(action.options.id)}/cue_point`,
 					spliceMessage,
