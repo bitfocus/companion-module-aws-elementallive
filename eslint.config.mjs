@@ -1,4 +1,4 @@
-const { generateEslintConfig } = require('@companion-module/tools/eslint/config.mjs')
+import { generateEslintConfig } from '@companion-module/tools/eslint/config.mjs'
 
 const baseConfig = await generateEslintConfig({})
 
