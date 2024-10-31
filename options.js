@@ -90,6 +90,22 @@ export const feedbackOptions = {
 		label: 'Event ID',
 		id: 'id',
 		default: '',
+		isVisible: (options) => !options.useVar,
+	},
+	idVar: {
+		id: 'id',
+		type: 'textinput',
+		label: 'Event ID',
+		default: '',
+		useVariables: true,
+		regex: Regex.SOMETHING,
+		isVisible: (options) => options.useVar,
+	},
+	useVar: {
+		id: 'useVar',
+		type: 'checkbox',
+		label: 'Use Variable?',
+		default: false,
 	},
 	status: {
 		type: 'dropdown',

@@ -9,9 +9,12 @@ export function getFeedbacks() {
 		defaultStyle: {
 			bgcolor: Colors.Green,
 		},
-		options: [feedbackOptions.id, feedbackOptions.status],
-		callback: (feedback) => {
-			return this.live_events?.[`${feedback.options.id}`]?.status === feedback.options.status
+		options: [feedbackOptions.id, feedbackOptions.idVar, feedbackOptions.status, feedbackOptions.useVar],
+		callback: async (feedback, context) => {
+			const id = feedback.options.useVar
+				? await context.parseVariablesInString(feedback.options.idVar)
+				: feedback.options.id.toString()
+			return this.live_events?.[id]?.status === feedback.options.status
 		},
 	}
 
