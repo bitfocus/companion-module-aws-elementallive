@@ -60,9 +60,13 @@ export function getActions() {
 		},
 		setAudioGain: {
 			name: 'Set Audio Gain',
-			options: [actionOptions.id, actionOptions.gain],
+			options: [actionOptions.id, actionOptions.gain, actionOptions.gainVar, actionOptions.useVar],
 			callback: async (action) => {
-				const audioGain = { gain: action.options.gain }
+				const gain = action.options.useVar
+					? Number(await this.parseVariablesInString(action.options.gainVar))
+					: action.options.gain
+				if (isNaN(gain) || gain < -60 || gain > 60) return
+				const audioGain = { gain: gain }
 				this.sendPostRequest(
 					`live_events/${await this.parseVariablesInString(action.options.id)}/adjust_audio_gain`,
 					audioGain,
@@ -71,9 +75,13 @@ export function getActions() {
 		},
 		insertSCTE35Message: {
 			name: 'Insert SCTE35',
-			options: [actionOptions.id, actionOptions.duration],
+			options: [actionOptions.id, actionOptions.duration, actionOptions.durationVar, actionOptions.useVar],
 			callback: async (action) => {
-				const spliceMessage = { cue_point: { duration: action.options.duration, splice_offset: 0 } }
+				const duration = action.options.useVar
+					? Number(await this.parseVariablesInString(action.options.durationVar))
+					: action.options.duration
+				if (isNaN(duration) || duration < 0) return
+				const spliceMessage = { cue_point: { duration: duration, splice_offset: 0 } }
 				this.sendPostRequest(
 					`live_events/${await this.parseVariablesInString(action.options.id)}/cue_point`,
 					spliceMessage,
