@@ -93,9 +93,9 @@ export const feedbackOptions = {
 		isVisible: (options) => !options.useVar,
 	},
 	idVar: {
-		id: 'id',
 		type: 'textinput',
 		label: 'Event ID',
+		id: 'idVar',
 		default: '',
 		useVariables: true,
 		regex: Regex.SOMETHING,
