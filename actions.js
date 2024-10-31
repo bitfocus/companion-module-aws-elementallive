@@ -1,4 +1,4 @@
-import { actionOptions } from './options'
+import { actionOptions } from './options.js'
 
 export function getActions() {
 	let actions = {

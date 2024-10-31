@@ -75,7 +75,7 @@ export const actionOptions = {
 	},
 }
 
-export const Colours = {
+export const Colors = {
 	White: combineRgb(255, 255, 255),
 	Black: combineRgb(0, 0, 0),
 	Gray: combineRgb(110, 110, 110),
