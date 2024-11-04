@@ -25,6 +25,9 @@
 		"eslint": "^9.13.0",
 		"prettier": "^3.3.3"
 	},
+	"engines": {
+		"node": "^22.11"
+	},
 	"prettier": "@companion-module/tools/.prettierrc.json",
 	"packageManager": "yarn@4.5.1"
 }
