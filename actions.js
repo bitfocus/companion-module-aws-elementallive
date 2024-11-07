@@ -1,150 +1,91 @@
+import { actionOptions } from './options.js'
+
 export function getActions() {
 	let actions = {
 		startLiveEvent: {
 			name: 'Start Live Event',
-			options: [
-				{
-					id: 'id',
-					type: 'textinput',
-					label: 'Event ID',
-					default: '',
-				},
-			],
-			callback: (action) => {
-				let start = { start: '' }
-				this.sendPostRequest(`live_events/${action.options.id}/start`, start)
+			options: [actionOptions.id],
+			callback: async (action) => {
+				const start = { start: '' }
+				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/start`, start)
 			},
 		},
 		stopLiveEvent: {
 			name: 'Stop Live Event',
-			options: [
-				{
-					id: 'id',
-					type: 'textinput',
-					label: 'Event ID',
-					default: '',
-				},
-			],
-			callback: (action) => {
-				let stop = { stop: '' }
-				this.sendPostRequest(`live_events/${action.options.id}/stop`, stop)
+			options: [actionOptions.id],
+			callback: async (action) => {
+				const stop = { stop: '' }
+				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/stop`, stop)
 			},
 		},
 		cancelLiveEvent: {
 			name: 'Cancel Live Event',
-			options: [
-				{
-					id: 'id',
-					type: 'textinput',
-					label: 'Event ID',
-					default: '',
-				},
-			],
-			callback: (action) => {
-				let cancel = { cancel: '' }
-				this.sendPostRequest(`live_events/${action.options.id}/cancel`, cancel)
+			options: [actionOptions.id],
+			callback: async (action) => {
+				const cancel = { cancel: '' }
+				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/cancel`, cancel)
 			},
 		},
 		archiveLiveEvent: {
 			name: 'Archive Live Event',
-			options: [
-				{
-					id: 'id',
-					type: 'textinput',
-					label: 'Event ID',
-					default: '',
-				},
-			],
-			callback: (action) => {
-				let archive = { archive: '' }
-				this.sendPostRequest(`live_events/${action.options.id}/archive`, archive)
+			options: [actionOptions.id],
+			callback: async (action) => {
+				const archive = { archive: '' }
+				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/archive`, archive)
 			},
 		},
 		resetLiveEvent: {
 			name: 'Reset Live Event',
-			options: [
-				{
-					id: 'id',
-					type: 'textinput',
-					label: 'Event ID',
-					default: '',
-				},
-			],
-			callback: (action) => {
-				let reset = { reset: '' }
-				this.sendPostRequest(`live_events/${action.options.id}/reset`, reset)
+			options: [actionOptions.id],
+			callback: async (action) => {
+				const reset = { reset: '' }
+				this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/reset`, reset)
 			},
 		},
 		muteAudio: {
 			name: 'Mute/Unmute Audio',
-			options: [
-				{
-					id: 'id',
-					type: 'textinput',
-					label: 'Event ID',
-					default: '',
-				},
-				{
-					id: 'mute',
-					type: 'checkbox',
-					label: 'Mute',
-					default: true,
-				},
-			],
-			callback: (action) => {
+			options: [actionOptions.id, actionOptions.mute],
+			callback: async (action) => {
 				if (action.options.mute) {
-					let mute = { mute_audio: '' }
-					this.sendPostRequest(`live_events/${action.options.id}/mute_audio`, mute)
+					const mute = { mute_audio: '' }
+					this.sendPostRequest(`live_events/${await this.parseVariablesInString(action.options.id)}/mute_audio`, mute)
 				} else {
-					let unmute = { unmute_audio: '' }
-					this.sendPostRequest(`live_events/${action.options.id}/unmute_audio`, unmute)
+					const unmute = { unmute_audio: '' }
+					this.sendPostRequest(
+						`live_events/${await this.parseVariablesInString(action.options.id)}/unmute_audio`,
+						unmute,
+					)
 				}
 			},
 		},
 		setAudioGain: {
 			name: 'Set Audio Gain',
-			options: [
-				{
-					id: 'id',
-					type: 'textinput',
-					label: 'Event ID',
-					default: '',
-				},
-				{
-					id: 'gain',
-					type: 'number',
-					label: 'Gain (dB)',
-					default: 0,
-					min: -60,
-					max: 60,
-					range: true,
-				},
-			],
-			callback: (action) => {
-				let audioGain = { gain: action.options.gain }
-				this.sendPostRequest(`live_events/${action.options.id}/adjust_audio_gain`, audioGain)
+			options: [actionOptions.id, actionOptions.gain, actionOptions.gainVar, actionOptions.useVar],
+			callback: async (action) => {
+				const gain = action.options.useVar
+					? Number(await this.parseVariablesInString(action.options.gainVar))
+					: action.options.gain
+				if (isNaN(gain) || gain < -60 || gain > 60) return
+				const audioGain = { gain: gain }
+				this.sendPostRequest(
+					`live_events/${await this.parseVariablesInString(action.options.id)}/adjust_audio_gain`,
+					audioGain,
+				)
 			},
 		},
 		insertSCTE35Message: {
 			name: 'Insert SCTE35',
-			options: [
-				{
-					id: 'id',
-					type: 'textinput',
-					label: 'Event ID',
-					default: '',
-				},
-
-				{
-					id: 'duration',
-					type: 'number',
-					label: 'Duration',
-					default: '',
-				},
-			],
-			callback: (action) => {
-				let spliceMessage = { cue_point: { duration: action.options.duration, splice_offset: 0 } }
-				this.sendPostRequest(`live_events/${action.options.id}/cue_point`, spliceMessage)
+			options: [actionOptions.id, actionOptions.duration, actionOptions.durationVar, actionOptions.useVar],
+			callback: async (action) => {
+				const duration = action.options.useVar
+					? Number(await this.parseVariablesInString(action.options.durationVar))
+					: action.options.duration
+				if (isNaN(duration) || duration < 0) return
+				const spliceMessage = { cue_point: { duration: duration, splice_offset: 0 } }
+				this.sendPostRequest(
+					`live_events/${await this.parseVariablesInString(action.options.id)}/cue_point`,
+					spliceMessage,
+				)
 			},
 		},
 	}

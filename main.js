@@ -6,17 +6,17 @@ import { getFeedbacks } from './feedbacks.js'
 import UpgradeScripts from './upgrades.js'
 
 import fetch from 'node-fetch'
-import { XMLParser, XMLBuilder } from 'fast-xml-parser'
+import { /*XMLParser,*/ XMLBuilder } from 'fast-xml-parser'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
 dayjs.extend(duration)
 
-const parser = new XMLParser({
+/* const parser = new XMLParser({
 	ignoreAttributes: false,
 	attributeNamePrefix: '',
 	allowBooleanAttributes: true,
 	ignoreDeclaration: true,
-})
+}) */
 
 class ElementalLiveInstance extends InstanceBase {
 	constructor(internal) {
@@ -131,7 +131,7 @@ class ElementalLiveInstance extends InstanceBase {
 
 					return res.text()
 				} else if (res.status == 401) {
-					this.updateStatus('bad_config', 'Authentication Error')
+					this.updateStatus(InstanceStatus.BadConfig, 'Authentication Error')
 				}
 			})
 			.then((data) => {
@@ -145,7 +145,7 @@ class ElementalLiveInstance extends InstanceBase {
 			.catch((error) => {
 				let errorText = String(error)
 				if (errorText.match('ETIMEDOUT') || errorText.match('ENOTFOUND') || errorText.match('ECONNREFUSED')) {
-					this.updateStatus('connection_failure')
+					this.updateStatus(InstanceStatus.ConnectionFailure)
 				}
 				this.log('debug', errorText)
 			})
@@ -175,11 +175,11 @@ class ElementalLiveInstance extends InstanceBase {
 		})
 			.then((res) => {
 				if (res.status == 200) {
-					this.updateStatus('ok')
+					this.updateStatus(InstanceStatus.Ok)
 
 					return res.text()
 				} else if (res.status == 401) {
-					this.updateStatus('bad_config', 'Authentication Error')
+					this.updateStatus(InstanceStatus.AuthenticationFailure, 'Authentication Error')
 				}
 			})
 			.then((data) => {
@@ -193,7 +193,7 @@ class ElementalLiveInstance extends InstanceBase {
 			.catch((error) => {
 				let errorText = String(error)
 				if (errorText.match('ETIMEDOUT') || errorText.match('ENOTFOUND') || errorText.match('ECONNREFUSED')) {
-					this.updateStatus('connection_failure')
+					this.updateStatus(InstanceStatus.ConnectionFailure)
 				}
 				this.log('debug', errorText)
 			})

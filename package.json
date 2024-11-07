@@ -1,10 +1,13 @@
 {
 	"name": "aws-elementallive",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
-		"format": "prettier -w ."
+		"format": "prettier -w .",
+		"package": "companion-module-build",
+		"lint:raw": "eslint",
+		"lint": "yarn lint:raw ."
 	},
 	"license": "MIT",
 	"repository": {
@@ -19,7 +22,12 @@
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.1.0",
+		"eslint": "^9.13.0",
 		"prettier": "^3.3.3"
 	},
-	"prettier": "@companion-module/tools/.prettierrc.json"
+	"engines": {
+		"node": "^22.11"
+	},
+	"prettier": "@companion-module/tools/.prettierrc.json",
+	"packageManager": "yarn@4.5.1"
 }
