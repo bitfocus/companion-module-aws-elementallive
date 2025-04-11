@@ -6,17 +6,10 @@ import { getFeedbacks } from './feedbacks.js'
 import UpgradeScripts from './upgrades.js'
 
 import fetch from 'node-fetch'
-import { /*XMLParser,*/ XMLBuilder } from 'fast-xml-parser'
+import { XMLBuilder } from 'fast-xml-parser'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
 dayjs.extend(duration)
-
-/* const parser = new XMLParser({
-	ignoreAttributes: false,
-	attributeNamePrefix: '',
-	allowBooleanAttributes: true,
-	ignoreDeclaration: true,
-}) */
 
 class ElementalLiveInstance extends InstanceBase {
 	constructor(internal) {
