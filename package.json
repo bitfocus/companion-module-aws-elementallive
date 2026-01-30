@@ -14,7 +14,7 @@
 	"dependencies": {
 		"@companion-module/base": "~1.11.0",
 		"dayjs": "^1.11.13",
-		"fast-xml-parser": "^4.5.0",
+		"fast-xml-parser": "^5.3.4",
 		"node-fetch": "^3.3.2"
 	},
 	"devDependencies": {
