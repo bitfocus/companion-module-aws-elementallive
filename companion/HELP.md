@@ -5,8 +5,9 @@ Control the AWS Elemental Live encoder.
 ## Configuration
 
 - Enter the encoder's IP address in the module settings
-
-_Note: At this time, encoders with authentication enabled are currently not supported_
+- If user authentication is enabled on the encoder, check **Enable API Authentication** and enter the username and API key
+  - The API key is not the user's password. An administrator can generate one in the encoder's web interface under **Settings > User Profile**
+  - Authentication uses a timestamp, so the Companion machine's clock must be in sync with the encoder's (use NTP)
 
 ## Actions
 

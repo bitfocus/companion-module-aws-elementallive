@@ -5,6 +5,7 @@ import { getVariables } from './variables.js'
 import { getFeedbacks } from './feedbacks.js'
 import UpgradeScripts from './upgrades.js'
 
+import { createHash } from 'node:crypto'
 import fetch from 'node-fetch'
 import { XMLParser, XMLBuilder } from 'fast-xml-parser'
 import dayjs from 'dayjs'
@@ -53,6 +54,27 @@ class ElementalLiveInstance extends InstanceBase {
 				label: 'Device IP',
 				width: 8,
 				regex: Regex.IP,
+			},
+			{
+				type: 'checkbox',
+				id: 'useAuth',
+				label: 'Enable API Authentication',
+				width: 12,
+				default: false,
+			},
+			{
+				type: 'textinput',
+				id: 'username',
+				label: 'Username',
+				width: 6,
+				isVisible: (options) => options.useAuth,
+			},
+			{
+				type: 'textinput',
+				id: 'apiKey',
+				label: 'API Key',
+				width: 6,
+				isVisible: (options) => options.useAuth,
 			},
 			{
 				type: 'static-text',
@@ -110,6 +132,25 @@ class ElementalLiveInstance extends InstanceBase {
 		this.setActionDefinitions(actions)
 	}
 
+	getAuthHeaders(request) {
+		if (!this.config.useAuth) {
+			return {}
+		}
+		// X-Auth-Key = md5(api_key + md5(url + user + api_key + expires)), where url is the
+		// request path without query string, /api prefix, or trailing slash
+		const md5 = (value) => createHash('md5').update(value).digest('hex')
+		const path = `/${request}`.split('?')[0].replace(/\/+$/, '')
+		const user = this.config.username ?? ''
+		const apiKey = this.config.apiKey ?? ''
+		const expires = String(Math.floor(Date.now() / 1000) + 30)
+
+		return {
+			'X-Auth-User': user,
+			'X-Auth-Expires': expires,
+			'X-Auth-Key': md5(apiKey + md5(path + user + apiKey + expires)),
+		}
+	}
+
 	sendGetRequest(request) {
 		if (!this.config.rejectUnauthorized) {
 			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
@@ -123,6 +164,7 @@ class ElementalLiveInstance extends InstanceBase {
 			headers: {
 				Accept: 'application/json',
 				'Content-type': 'application/json',
+				...this.getAuthHeaders(request),
 			},
 		})
 			.then((res) => {
@@ -170,6 +212,7 @@ class ElementalLiveInstance extends InstanceBase {
 			headers: {
 				'Content-Type': 'text/xml',
 				Accept: 'application/xml',
+				...this.getAuthHeaders(request),
 			},
 			body: output,
 		})
