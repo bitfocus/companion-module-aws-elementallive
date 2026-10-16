@@ -10,7 +10,7 @@ Control the AWS Elemental Live encoder.
   - The API key is not the user's password. An administrator can generate one in the encoder's web interface under **Settings > User Profile**
   - Authentication uses a timestamp, so the Companion machine's clock must be in sync with the encoder's (use NTP)
 
-- The module polls only the events that buttons use in an action or feedback, every **Poll Interval** (default 500 ms). If a button only shows an event's variables, add that event to **Also Monitor Events**. Status variables exist only for polled events.
+- The module polls only the events that buttons use in an action or feedback, every **Poll Interval** (default 500 ms). If a button only shows an event's variables, add that event to **Also Monitor Events**, or select **All Events** to poll every event. Status variables exist only for polled events.
 - The module refreshes the event list and system status every 5 seconds.
 
 ## Actions

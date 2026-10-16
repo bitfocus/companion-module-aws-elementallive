@@ -87,7 +87,7 @@ class ElementalLiveInstance extends InstanceBase {
 				label: 'Also Monitor Events',
 				width: 12,
 				default: [],
-				choices: this.getEventChoices?.() ?? [],
+				choices: [{ id: 'all', label: 'All Events' }, ...(this.getEventChoices?.() ?? [])],
 			},
 			{
 				type: 'checkbox',
@@ -174,7 +174,11 @@ class ElementalLiveInstance extends InstanceBase {
 	}
 
 	getMonitoredEventIds() {
-		let ids = new Set([...this.subscriptions.values(), ...(this.config.monitorEvents ?? []).map((id) => `${id}`)])
+		let monitorEvents = (this.config.monitorEvents ?? []).map((id) => `${id}`)
+		if (monitorEvents.includes('all')) {
+			return Object.keys(this.live_events)
+		}
+		let ids = new Set([...this.subscriptions.values(), ...monitorEvents])
 		return [...ids].filter((id) => this.live_events[id])
 	}
 
