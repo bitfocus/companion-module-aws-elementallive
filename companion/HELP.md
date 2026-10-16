@@ -19,8 +19,12 @@ Control the AWS Elemental Live encoder.
 - Mute/Unmute Audio
 - Set Audio Gain
 - Switch Input (by input label or ID, on a running event)
+- Prepare Input
+  - Decodes an input before you switch to it, so the switch happens faster. The encoder has two preparation slots, and each slot can be cancelled
 - Image Overlay - Show / Hide
   - The event must have REST image insertion enabled, and the image (32-bit BMP, PNG or TGA, smaller than the output) must be on the encoder. The encoder ships an example at `/opt/elemental_se/web/public/example_files/Elemental_logo.png`
+- Motion Overlay - Show / Hide
+  - The event must have a motion image inserter with REST control enabled. Show takes a MOV file, the first file of a PNG sequence, or an HTML5 URL. Leave the path empty to replay the current motion overlay
 - SCTE-35 - Insert Avail (Cue Out), Return to Network, Cancel Avail, Insert Time Signal
 - Output - Start/Stop/Pause/Unpause
 - Output Group - Start/Stop/Pause/Unpause (by group ID or name)

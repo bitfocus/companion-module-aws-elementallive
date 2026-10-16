@@ -133,6 +133,63 @@ export function getActions() {
 				})
 			},
 		},
+		prepareInput: {
+			name: 'Prepare Input',
+			description: 'Decode an input ahead of time so a later switch to it is faster',
+			options: [
+				eventOption,
+				{
+					id: 'by',
+					type: 'dropdown',
+					label: 'Select Input By',
+					default: 'label',
+					choices: [
+						{ id: 'label', label: 'Input Label' },
+						{ id: 'id', label: 'Input ID' },
+						{ id: 'cancel', label: 'Cancel Preparation' },
+					],
+				},
+				{
+					id: 'input',
+					type: 'textinput',
+					label: 'Input',
+					default: '',
+					useVariables: true,
+					isVisible: (options) => options.by !== 'cancel',
+				},
+				{
+					id: 'slot',
+					type: 'dropdown',
+					label: 'Preparation Slot',
+					default: 0,
+					choices: [
+						{ id: 0, label: '1' },
+						{ id: 1, label: '2' },
+					],
+				},
+				{
+					id: 'perpetual',
+					type: 'checkbox',
+					label: 'Keep Prepared After Switching',
+					default: false,
+					isVisible: (options) => options.by !== 'cancel',
+				},
+			],
+			callback: async (action, context) => {
+				let options = action.options
+				let prepare = {}
+				if (options.by === 'cancel') {
+					// This input ID tells the encoder to stop preparing the slot
+					prepare.input_id = '0xffffffff'
+				} else {
+					let input = await context.parseVariablesInString(options.input)
+					prepare[options.by === 'id' ? 'input_id' : 'input_label'] = input
+					prepare.perpetual = options.perpetual
+				}
+				prepare.preparation_index = options.slot
+				this.sendPostRequest(`live_events/${options.id}/prepare_input`, { prepare_input: prepare })
+			},
+		},
 		activateImageOverlay: {
 			name: 'Image Overlay - Show',
 			description: 'Requires the event to be created with REST image insertion enabled',
@@ -254,6 +311,115 @@ export function getActions() {
 			callback: (action) => {
 				this.sendPostRequest(`live_events/${action.options.id}/image_inserter`, {
 					image_inserter: { image: { activate: false, layer: action.options.layer } },
+				})
+			},
+		},
+		activateMotionOverlay: {
+			name: 'Motion Overlay - Show',
+			description:
+				'Requires the event to be created with a motion image inserter that has REST control enabled. Leave the path empty to replay the current motion overlay',
+			options: [
+				eventOption,
+				{
+					id: 'uri',
+					type: 'textinput',
+					label: 'Asset Path (on encoder)',
+					default: '',
+					useVariables: true,
+				},
+				{
+					id: 'mode',
+					type: 'dropdown',
+					label: 'Asset Type',
+					default: 'mov',
+					choices: [
+						{ id: 'mov', label: 'MOV' },
+						{ id: 'png', label: 'PNG Sequence' },
+						{ id: 'html', label: 'HTML5' },
+					],
+				},
+				{
+					id: 'fullFrame',
+					type: 'checkbox',
+					label: 'Full Frame',
+					default: false,
+					isVisible: (options) => options.mode !== 'html',
+				},
+				{
+					id: 'left',
+					type: 'number',
+					label: 'Left (px)',
+					default: 0,
+					min: 0,
+					max: 7680,
+					isVisible: (options) => options.mode !== 'html' && !options.fullFrame,
+				},
+				{
+					id: 'top',
+					type: 'number',
+					label: 'Top (px)',
+					default: 0,
+					min: 0,
+					max: 4320,
+					isVisible: (options) => options.mode !== 'html' && !options.fullFrame,
+				},
+				{
+					id: 'loop',
+					type: 'checkbox',
+					label: 'Loop',
+					default: false,
+					isVisible: (options) => options.mode !== 'html',
+				},
+				{
+					id: 'framerateNumerator',
+					type: 'number',
+					label: 'Frame Rate Numerator',
+					default: 30000,
+					min: 1,
+					max: 120000,
+					isVisible: (options) => options.mode === 'png',
+				},
+				{
+					id: 'framerateDenominator',
+					type: 'number',
+					label: 'Frame Rate Denominator',
+					default: 1001,
+					min: 1,
+					max: 120000,
+					isVisible: (options) => options.mode === 'png',
+				},
+			],
+			callback: async (action, context) => {
+				let options = action.options
+				// An empty action time starts the overlay now instead of at a previously set time
+				let overlay = { action_time: '', active: true }
+				let uri = (await context.parseVariablesInString(options.uri)).trim()
+				if (uri) {
+					// The encoder resets any field left out when the asset changes, so send them all
+					overlay.insertion_mode = options.mode
+					overlay.motion_image_inserter_input = { uri }
+					if (options.mode !== 'html') {
+						overlay.full_frame = options.fullFrame
+						overlay.image_x = options.fullFrame ? 0 : options.left
+						overlay.image_y = options.fullFrame ? 0 : options.top
+						overlay.loop_input = options.loop
+					}
+					if (options.mode === 'png') {
+						overlay.framerate_numerator = options.framerateNumerator
+						overlay.framerate_denominator = options.framerateDenominator
+					}
+				}
+				this.sendPostRequest(`live_events/${options.id}/motion_image_inserter`, {
+					motion_image_inserter: overlay,
+				})
+			},
+		},
+		deactivateMotionOverlay: {
+			name: 'Motion Overlay - Hide',
+			options: [eventOption],
+			callback: (action) => {
+				this.sendPostRequest(`live_events/${action.options.id}/motion_image_inserter`, {
+					motion_image_inserter: { action_time: '', active: false },
 				})
 			},
 		},
