@@ -31,8 +31,9 @@ class ElementalLiveInstance extends InstanceBase {
 		this.subscriptions = new Map()
 	}
 
-	async init(config) {
+	async init(config, _isFirstInit, secrets) {
 		this.config = config
+		this.secrets = secrets
 
 		this.updateStatus(InstanceStatus.Connecting)
 
@@ -49,8 +50,9 @@ class ElementalLiveInstance extends InstanceBase {
 		this.log('debug', 'destroy')
 	}
 
-	async configUpdated(config) {
+	async configUpdated(config, secrets) {
 		this.config = config
+		this.secrets = secrets
 		this.updateStatus(InstanceStatus.Connecting)
 		this.initConnection()
 		this.refreshDefinitions()
@@ -104,7 +106,7 @@ class ElementalLiveInstance extends InstanceBase {
 				isVisible: (options) => options.useAuth,
 			},
 			{
-				type: 'textinput',
+				type: 'secret-text',
 				id: 'apiKey',
 				label: 'API Key',
 				width: 6,
@@ -230,7 +232,7 @@ class ElementalLiveInstance extends InstanceBase {
 		const md5 = (value) => createHash('md5').update(value).digest('hex')
 		const path = `/${request}`.split('?')[0].replace(/\/+$/, '')
 		const user = this.config.username ?? ''
-		const apiKey = this.config.apiKey ?? ''
+		const apiKey = this.secrets?.apiKey ?? ''
 		const expires = String(Math.floor(Date.now() / 1000) + 30)
 
 		return {
