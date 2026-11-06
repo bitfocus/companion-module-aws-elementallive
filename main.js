@@ -87,6 +87,7 @@ class ElementalLiveInstance extends InstanceBase {
 				label: 'Also Monitor Events',
 				width: 12,
 				default: [],
+				allowCustom: true,
 				choices: [{ id: 'all', label: 'All Events' }, ...(this.getEventChoices?.() ?? [])],
 			},
 			{
@@ -208,7 +209,9 @@ class ElementalLiveInstance extends InstanceBase {
 		// Fetch newly monitored events now so their variables fill in before the next poll
 		let previous = before.split(',')
 		for (let id of after.filter((id) => !previous.includes(id))) {
-			this.updateEventStatus(id).then(() => this.checkFeedbacks())
+			this.updateEventStatus(id)
+				.then(() => this.checkFeedbacks())
+				.catch((error) => this.log('debug', `Status refresh failed: ${error}`))
 		}
 	}
 
@@ -238,7 +241,8 @@ class ElementalLiveInstance extends InstanceBase {
 		}
 	}
 
-	async sendRequest(method, request, body) {
+	// `optional` requests (e.g. system status) must not flip the connection to a bad config on a 401
+	async sendRequest(method, request, body, optional) {
 		if (!this.config.rejectUnauthorized) {
 			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 		} else {
@@ -266,7 +270,8 @@ class ElementalLiveInstance extends InstanceBase {
 				errorText.match('ETIMEDOUT') ||
 				errorText.match('ENOTFOUND') ||
 				errorText.match('ECONNREFUSED') ||
-				error.name === 'TimeoutError'
+				error.name === 'TimeoutError' ||
+				error.name === 'AbortError'
 			) {
 				this.updateStatus(InstanceStatus.ConnectionFailure)
 			}
@@ -274,14 +279,24 @@ class ElementalLiveInstance extends InstanceBase {
 			return null
 		}
 
+		let text
+		try {
+			text = await res.text()
+		} catch (error) {
+			this.log('debug', `${method} ${request}: unable to read response: ${error}`)
+			this.updateStatus(InstanceStatus.ConnectionFailure)
+			return null
+		}
 		if (res.status == 401) {
-			this.updateStatus(InstanceStatus.BadConfig, 'Authentication Error')
+			if (!optional) {
+				this.updateStatus(InstanceStatus.BadConfig, 'Authentication Error')
+			}
 			return null
 		}
 
-		this.updateStatus(InstanceStatus.Ok)
-
-		let text = await res.text()
+		if (res.ok) {
+			this.updateStatus(InstanceStatus.Ok)
+		}
 		if (!res.ok) {
 			let message = this.getErrorMessage(text)
 			this.log(method === 'GET' ? 'debug' : 'warn', `${method} ${request} failed (HTTP ${res.status}) ${message}`)
@@ -296,6 +311,7 @@ class ElementalLiveInstance extends InstanceBase {
 			let message = method === 'GET' ? '' : this.getErrorMessage(data)
 			if (message) {
 				this.log('warn', `${method} ${request}: ${message}`)
+				return null
 			}
 			return data
 		} catch (error) {
@@ -329,12 +345,12 @@ class ElementalLiveInstance extends InstanceBase {
 		return text.startsWith('<') ? '' : text
 	}
 
-	sendGetRequest(request) {
-		return this.sendRequest('GET', request)
+	sendGetRequest(request, optional) {
+		return this.sendRequest('GET', request, undefined, optional)
 	}
 
 	async sendPostRequest(request, body) {
-		let result = await this.sendRequest('POST', request, body)
+		let result = await this.sendRequest('POST', request, body, false)
 
 		// Refresh the event now so buttons show the result of the command, then again shortly
 		// after, because the encoder applies some commands with a delay
@@ -343,9 +359,13 @@ class ElementalLiveInstance extends InstanceBase {
 			await this.updateEventStatus(eventId)
 			this.checkFeedbacks()
 			setTimeout(async () => {
-				if (this.live_events[eventId]) {
-					await this.updateEventStatus(eventId)
-					this.checkFeedbacks()
+				try {
+					if (this.live_events[eventId]) {
+						await this.updateEventStatus(eventId)
+						this.checkFeedbacks()
+					}
+				} catch (error) {
+					this.log('debug', `Status refresh failed: ${error}`)
 				}
 			}, COMMAND_SETTLE_DELAY)
 		}
@@ -392,13 +412,15 @@ class ElementalLiveInstance extends InstanceBase {
 			await Promise.all(this.getMonitoredEventIds().map((id) => this.updateEventStatus(id)))
 
 			this.checkFeedbacks()
+		} catch (error) {
+			this.log('debug', `Poll failed: ${error}`)
 		} finally {
 			this.polling = false
 		}
 	}
 
 	async updateEventList() {
-		let data = await this.sendGetRequest('live_events')
+		let data = await this.sendGetRequest('live_events', false)
 		if (!Array.isArray(data)) {
 			return
 		}
@@ -437,7 +459,7 @@ class ElementalLiveInstance extends InstanceBase {
 	}
 
 	async updateEventStatus(id) {
-		let data = await this.sendGetRequest(`live_events/${id}/status`)
+		let data = await this.sendGetRequest(`live_events/${id}/status`, false)
 		let status = data?.live_event
 		if (!status || !this.live_events[id]) {
 			return
@@ -497,7 +519,7 @@ class ElementalLiveInstance extends InstanceBase {
 	}
 
 	async updateSystemStatus() {
-		let data = await this.sendGetRequest('system_status.json')
+		let data = await this.sendGetRequest('system_status.json', true)
 		if (!data?.status) {
 			return
 		}
