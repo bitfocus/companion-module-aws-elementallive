@@ -87,7 +87,6 @@ class ElementalLiveInstance extends InstanceBase {
 				label: 'Also Monitor Events',
 				width: 12,
 				default: [],
-				allowCustom: true,
 				choices: [{ id: 'all', label: 'All Events' }, ...(this.getEventChoices?.() ?? [])],
 			},
 			{
@@ -241,7 +240,7 @@ class ElementalLiveInstance extends InstanceBase {
 		}
 	}
 
-	// `optional` requests (e.g. system status) must not flip the connection to a bad config on a 401
+	// `optional` requests (e.g. system status) never change the connection status, so they can't flap it
 	async sendRequest(method, request, body, optional) {
 		if (!this.config.rejectUnauthorized) {
 			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
@@ -267,11 +266,12 @@ class ElementalLiveInstance extends InstanceBase {
 		} catch (error) {
 			let errorText = String(error)
 			if (
-				errorText.match('ETIMEDOUT') ||
-				errorText.match('ENOTFOUND') ||
-				errorText.match('ECONNREFUSED') ||
-				error.name === 'TimeoutError' ||
-				error.name === 'AbortError'
+				!optional &&
+				(errorText.match('ETIMEDOUT') ||
+					errorText.match('ENOTFOUND') ||
+					errorText.match('ECONNREFUSED') ||
+					error.name === 'TimeoutError' ||
+					error.name === 'AbortError')
 			) {
 				this.updateStatus(InstanceStatus.ConnectionFailure)
 			}
@@ -284,7 +284,9 @@ class ElementalLiveInstance extends InstanceBase {
 			text = await res.text()
 		} catch (error) {
 			this.log('debug', `${method} ${request}: unable to read response: ${error}`)
-			this.updateStatus(InstanceStatus.ConnectionFailure)
+			if (!optional) {
+				this.updateStatus(InstanceStatus.ConnectionFailure)
+			}
 			return null
 		}
 		if (res.status == 401) {
@@ -294,7 +296,7 @@ class ElementalLiveInstance extends InstanceBase {
 			return null
 		}
 
-		if (res.ok) {
+		if (res.ok && !optional) {
 			this.updateStatus(InstanceStatus.Ok)
 		}
 		if (!res.ok) {
@@ -356,8 +358,12 @@ class ElementalLiveInstance extends InstanceBase {
 		// after, because the encoder applies some commands with a delay
 		let eventId = request.match(/^live_events\/([^/]+)\//)?.[1]
 		if (eventId && this.live_events[eventId]) {
-			await this.updateEventStatus(eventId)
-			this.checkFeedbacks()
+			try {
+				await this.updateEventStatus(eventId)
+				this.checkFeedbacks()
+			} catch (error) {
+				this.log('debug', `Status refresh failed: ${error}`)
+			}
 			setTimeout(async () => {
 				try {
 					if (this.live_events[eventId]) {
